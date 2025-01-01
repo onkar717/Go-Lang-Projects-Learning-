@@ -1,11 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
-	"encoding/json"
 	"net/http"
 	"strconv"
+	"math/rand"
 	"github.com/gorilla/mux"
 )
 
@@ -58,6 +59,39 @@ func getMovie(w http.ResponseWriter, r *http.Request)  {
 
 //Create a Movie 
 
+func createMovie(w http.ResponseWriter, r *http.Request)  {
+	w.Header().Set("Content-Type", "application/json")
+	var movie Movie
+	_ = json.NewDecoder(r.Body).Decode(&movie)
+	movie.ID = strconv.Itoa(rand.Intn(100000000))
+	movies = append(movies, movie)
+	json.NewEncoder(w).Encode(movie)
+}
+
+
+func updateMovie(w http.ResponseWriter, r *http.Request)  {
+	
+	//set the json content type 
+	w.Header().Set("Content-Type" , "application/json")
+	// params
+	params := mux.Vars(r)
+	// loop over the movies , range
+	// delete the movie with i.d that you've sent 
+	//add the new movie - the movie that we send in the body of postman 
+
+	for index , item := range movies{
+		if item.ID == params["id"] { 
+			movies = append(movies[:index], movies[index+1:]...)
+
+			var movie Movie
+			_ = json.NewDecoder(r.Body).Decode(&movie)
+			movie.ID = params["id"]
+			movies = append(movies, movie)
+			json.NewEncoder	(w).Encode(movie)
+			return
+		}
+	}
+}
 
 
 func main()  {
@@ -73,7 +107,7 @@ func main()  {
 	r.HandleFunc("/movies/{id}" , updateMovie).Methods("PUT")
 	r.HandleFunc("/movies/{id}" , deleteMovie).Methods("DELETE")
 
-	fmt.Printf("Starting server at Port 8000\n")
-	log.Fatal(http.ListenAndServe(":8000",r))
+	fmt.Printf("Starting server at Port 8080\n")
+	log.Fatal(http.ListenAndServe(":8080",r))
 
 }
